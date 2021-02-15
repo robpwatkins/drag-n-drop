@@ -1,23 +1,45 @@
-import logo from './logo.svg';
+import { useEffect, useState, useCallback } from 'react';
+import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
 import './App.css';
 
 function App() {
+  const [pups, setPups] = useState([]);
+
+  const fetchPups = useCallback(async () => {
+    let response = await fetch('https://puppyapi.com/pups');
+    let json = await response.json();
+    setPups(json);
+  })
+  
+  useEffect(() => {
+    fetchPups();
+  }, [])
+  
+  console.log(pups);
   return (
     <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+      <DragDropContext>
+        <Droppable droppableId="pups">
+          {(provided) => (
+            <ul className="pups" {...provided.droppableProps} ref={provided.innerRef}>
+              {pups.map((pup, index) => {
+                return (
+                  <Draggable key={pup.pups_id.toString()} draggableId={pup.pups_id.toString()} index={index}>
+                    {(provided) => (
+                      <li ref={provided.innerRef} {...provided.draggableProps} {...provided.dragHandleProps}>
+                        <div className="pup-thumb">
+                          <img src={pup.img_url} alt=""/>
+                        </div>
+                        <p>{pup.name}</p>
+                      </li>
+                    )}
+                  </Draggable>
+                )
+              })}
+            </ul>
+          )}
+        </Droppable>
+      </DragDropContext>
     </div>
   );
 }
